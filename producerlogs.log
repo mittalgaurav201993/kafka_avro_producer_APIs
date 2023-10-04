@@ -1,0 +1,18 @@
+2023-10-04 18:28:09,670:INFO:Successfully created topic 'Orders_with_amount_topic'.
+2023-10-04 18:29:17,101:INFO:Successfully created topic 'Valid_orders_topic'.
+2023-10-04 18:29:17,105:ERROR:KafkaError{code=TOPIC_ALREADY_EXISTS,val=36,str="Topic 'Valid_orders_topic' already exists."}
+2023-10-04 18:29:29,315:INFO:Successfully created topic 'Orders_with_amount_topic'.
+2023-10-04 18:29:29,321:ERROR:KafkaError{code=TOPIC_ALREADY_EXISTS,val=36,str="Topic 'Orders_with_amount_topic' already exists."}
+2023-10-04 18:29:55,230:INFO:Successfully created topic 'Orders_with_amount_topic'.
+2023-10-04 18:29:55,234:ERROR:KafkaError{code=TOPIC_ALREADY_EXISTS,val=36,str="Topic 'Orders_with_amount_topic' already exists."}
+2023-10-04 18:30:35,089:INFO:
+    Consumer with group Ids '['valid-orders-consumer-grp', 'products-consumer-group', 'customers-consumer-group']'started and
+    consuming from '['Valid_orders_topic', 'Products_topic', 'Customers_topic']' topics.
+2023-10-04 18:30:35,165:DEBUG:Starting new HTTP connection (1): localhost:8081
+2023-10-04 18:30:35,633:DEBUG:http://localhost:8081 "GET /schemas/ids/14 HTTP/1.1" 200 156
+2023-10-04 18:30:40,653:DEBUG:Starting new HTTP connection (1): localhost:8081
+2023-10-04 18:30:40,666:DEBUG:http://localhost:8081 "GET /schemas/ids/15 HTTP/1.1" 200 149
+2023-10-04 18:30:47,973:DEBUG:Starting new HTTP connection (1): localhost:8081
+2023-10-04 18:30:47,986:DEBUG:http://localhost:8081 "GET /schemas/ids/13 HTTP/1.1" 200 210
+2023-10-04 18:30:47,989:DEBUG:Starting new HTTP connection (1): localhost:8081
+2023-10-04 18:30:48,280:DEBUG:http://localhost:8081 "POST /subjects/Orders_with_amount_topic-value/versions?normalize=False HTTP/1.1" 200 9

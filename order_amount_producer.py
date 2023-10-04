@@ -87,7 +87,7 @@ def topic_creator(topic_name):
     client.alter_configs([config_update])
 
 
-@app.post('/fetch/valid_orders', status_code=201, response_model=list[OrderTotalAmount])
+@app.post('/produce/orders_with_amount', status_code=201, response_model=list[OrderTotalAmount])
 async def valid_order_producer():
     logger.info(f"""
     Consumer with group Ids '{[os.environ['VALID_ORDER_CONSUMER_GROUP'],

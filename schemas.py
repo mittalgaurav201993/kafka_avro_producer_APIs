@@ -125,7 +125,7 @@ order_amount_schema = """
          "type": "int"},
         {"name": "product_price",
          "type": "int"},
-        {"name": "Order_amount",
+        {"name": "order_amount",
          "type": "int"}
          ]
 }"""
