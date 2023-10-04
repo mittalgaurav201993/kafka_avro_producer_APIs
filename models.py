@@ -41,3 +41,14 @@ class Revenue(BaseModel):
     cust_id: int
     cust_name: str
     order_amount_total: int
+
+
+class OrderTotalAmount(BaseModel):
+    order_id: int
+    customer_id: int
+    customer_name: str
+    product_id: int
+    product_name: str
+    product_qty: int
+    product_price: int
+    Order_amount: int

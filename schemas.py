@@ -104,3 +104,28 @@ revenue_schema = """
          "type": "int"}
          ]
 }"""
+
+order_amount_schema = """
+{
+"namespace": "com.thecodinginterface.avrodomainevents",
+"type": "record",
+"name": "order_format",
+"fields": [
+        {"name": "order_id",
+         "type": "int"},
+        {"name": "customer_id",
+         "type": "int"},
+        {"name": "customer_name",
+         "type": "string"},
+        {"name": "product_id",
+         "type": "int"},
+        {"name": "product_name",
+         "type": "string"},
+        {"name": "product_qty",
+         "type": "int"},
+        {"name": "product_price",
+         "type": "int"},
+        {"name": "Order_amount",
+         "type": "int"}
+         ]
+}"""
