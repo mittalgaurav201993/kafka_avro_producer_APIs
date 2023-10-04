@@ -11,7 +11,7 @@ from confluent_kafka.schema_registry.avro import AvroSerializer, AvroDeserialize
 from confluent_kafka.serialization import StringSerializer, StringDeserializer
 
 lo_customers_orders: [dict] = []
-so_customers: set[dict] = set()
+so_customers: set[int] = set()
 lo_topics: list[str] = []
 load_dotenv(verbose=True)
 app = FastAPI()
@@ -111,9 +111,9 @@ async def revenue_producer():
     while consuming:
         fetched_order = consumer.poll(timeout=5.0)
         if fetched_order is not None:
-            so_customers.add({'id': fetched_order.value().customer_id,
-                              'name': fetched_order.value().customer_name})
+            so_customers.add(fetched_order.value().customer_id)
             lo_customers_orders.append({'id': fetched_order.value().customer_id,
+                                        'name': fetched_order.value().customer_name,
                                         'each_order_amount': fetched_order.value().order_amount})
             consumer.commit(message=fetched_order)
         else:
@@ -122,13 +122,16 @@ async def revenue_producer():
                 - Added required order details to set and list, now exiting consumer.
                 """)
             consuming = False
-    for cust in so_customers:
+    for cust_id in so_customers:
         per_customer_revenue_total = 0
+        cust_name: list[str] = []
         for order in lo_customers_orders:
-            if order['id'] == cust['id']:
+            if order['id'] == cust_id:
+                cust_name.clear()
+                cust_name.append(order['name'])
                 per_customer_revenue_total += order['each_order_amount']
-        revenue = Revenue(cust_id=cust['id'],
-                          cust_name=cust['name'],
+        revenue = Revenue(cust_id=cust_id,
+                          cust_name=cust_name[0],
                           order_amount_total=per_customer_revenue_total)
         producer.produce(topic=lo_topics[0],
                          key=str(revenue.cust_id),

@@ -11,3 +11,8 @@ for i in a:
 
 a.add(1)
 print(a)
+
+b = ['1', 3, 'f', 7]
+print(b)
+b[1] = 100
+print(b)
