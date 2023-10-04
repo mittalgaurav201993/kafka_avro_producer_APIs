@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from confluent_kafka.admin import AdminClient, NewTopic, ConfigResource, ResourceType
-from models import Order
+from models import Revenue, OrderTotalAmount
 from confluent_kafka import SerializingProducer, DeserializingConsumer, TopicPartition
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer, AvroDeserializer
@@ -84,21 +84,21 @@ def topic_creator(topic_name):
     client.alter_configs([config_update])
 
 
-@app.post('/fetch/valid_orders', status_code=201, response_model=list[Order])
-async def valid_order_producer():
+@app.post('/fetch/customers_revenue', status_code=201, response_model=list[Revenue])
+async def revenue_producer():
     logger.info(f"""
-    Consumer with group Id '{os.environ['ORDERS_CONSUMER_GROUP']}'started and
-    consuming from '{os.environ['ORDERS_TOPIC_NAME']}' topic.""")
+    Consumer with group Id '{os.environ['ORDERS_WITH_AMOUNT_CONSUMER_GROUP']}'started and
+    consuming from '{os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME']}' topic.""")
     print(f"""
-    Consumer with group Id '{os.environ['ORDERS_CONSUMER_GROUP']}'started and
-    consuming from '{os.environ['ORDERS_TOPIC_NAME']}' topic.""")
-    lo_records: list[Order] = []
+    Consumer with group Id '{os.environ['ORDERS_WITH_AMOUNT_CONSUMER_GROUP']}'started and
+    consuming from '{os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME']}' topic.""")
+    lo_records: list[Revenue] = []
     producer = defined_producer()
-    orders_consumer_group = os.environ['ORDERS_CONSUMER_GROUP']
-    consumer = defined_consumer(Order, orders_consumer_group)
-    topic_partitions = [TopicPartition(topic=os.environ['ORDERS_TOPIC_NAME'], partition=0, offset=0),
-                        TopicPartition(topic=os.environ['ORDERS_TOPIC_NAME'], partition=1, offset=0),
-                        TopicPartition(topic=os.environ['ORDERS_TOPIC_NAME'], partition=2, offset=0)]
+    orders_with_amount_consumer_group = os.environ['ORDERS_WITH_AMOUNT_CONSUMER_GROUP']
+    consumer = defined_consumer(OrderTotalAmount, orders_with_amount_consumer_group)
+    topic_partitions = [TopicPartition(topic=os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME'], partition=0, offset=0),
+                        TopicPartition(topic=os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME'], partition=1, offset=0),
+                        TopicPartition(topic=os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME'], partition=2, offset=0)]
     consumer.assign(topic_partitions)
     for topic_partition in topic_partitions:
         consumer.seek(topic_partition)
@@ -106,6 +106,7 @@ async def valid_order_producer():
     while consuming:
         fetched_order = consumer.poll(timeout=5.0)
         if fetched_order is not None:
+            -------------------------------------------------------------
             if fetched_order.value().validity:
                 print(f"Success inside if statement as order validity"
                       f" is 'True' having order ID: {fetched_order.value().id}")
