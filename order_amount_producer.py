@@ -87,7 +87,7 @@ def topic_creator(topic_name):
     client.alter_configs([config_update])
 
 
-@app.post('/produce/orders_with_amount', status_code=201, response_model=list[OrderTotalAmount])
+@app.post('/produce/orders_with_calc_amount', status_code=201, response_model=list[OrderTotalAmount])
 async def valid_order_producer():
     logger.info(f"""
     Consumer with group Ids '{[os.environ['VALID_ORDER_CONSUMER_GROUP'],
@@ -193,7 +193,7 @@ async def valid_order_producer():
         else:
             print(f"""
                 - All valid orders were fetched, thus getting 'fetched_valid_order' as 'None'.
-                - Now exiting valid_order_consumer and flushing order with amounts to 'Orders_with_amount_topic'.
+                - Now exiting valid_order_consumer and flushing order with amounts to 'Orders_with_calc_amount_topic'.
                 """)
             consuming_valid_orders = False
     producer.flush()
