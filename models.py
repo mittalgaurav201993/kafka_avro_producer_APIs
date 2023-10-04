@@ -51,4 +51,4 @@ class OrderTotalAmount(BaseModel):
     product_name: str
     product_qty: int
     product_price: int
-    Order_amount: int
+    order_amount: int

@@ -109,7 +109,7 @@ order_amount_schema = """
 {
 "namespace": "com.thecodinginterface.avrodomainevents",
 "type": "record",
-"name": "order_format",
+"name": "order_with_amount",
 "fields": [
         {"name": "order_id",
          "type": "int"},

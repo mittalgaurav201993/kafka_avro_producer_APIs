@@ -137,6 +137,7 @@ async def valid_order_producer():
         customers_consumer.seek(customers_topic_partition)
 
     consuming_products = True
+    lo_products.clear()
     while consuming_products:
         fetched_product = products_consumer.poll(timeout=5.0)
         if fetched_product is not None:
@@ -151,6 +152,7 @@ async def valid_order_producer():
             consuming_products = False
 
     consuming_customers = True
+    lo_customers.clear()
     while consuming_customers:
         fetched_customer = customers_consumer.poll(timeout=5.0)
         if fetched_customer is not None:
@@ -168,23 +170,31 @@ async def valid_order_producer():
     while consuming_valid_orders:
         fetched_valid_order = valid_order_consumer.poll(timeout=5.0)
         if fetched_valid_order is not None:
-            print(f"Successfully fetched valid_order with ID: {fetched_valid_order.value().id}")
-
-
-
-
-
-
-            customers_consumer.commit(message=fetched_customer)
+            print(f"Successfully fetched valid order with ID: {fetched_valid_order.value().id}")
+            for product_item in lo_products:
+                if fetched_valid_order.value().product_id == product_item['id']:
+                    calc_order_amount = product_item['price'] * fetched_valid_order.value().product_qty
+                    for each_customer in lo_customers:
+                        if fetched_valid_order.value().customer_id == each_customer['id']:
+                            order_with_amount = OrderTotalAmount(order_id=fetched_valid_order.value().id,
+                                                                 customer_id=fetched_valid_order.value().customer_id,
+                                                                 customer_name=each_customer['name'],
+                                                                 product_id=fetched_valid_order.value().product_id,
+                                                                 product_name=product_item['name'],
+                                                                 product_qty=fetched_valid_order.value().product_qty,
+                                                                 product_price=product_item['price'],
+                                                                 order_amount=calc_order_amount)
+                            producer.produce(topic=lo_topics[0],
+                                             key=str(order_with_amount.order_id),
+                                             value=order_with_amount,
+                                             on_delivery=ProducerCallback(order_with_amount))
+                            lo_records.append(order_with_amount)
+                            valid_order_consumer.commit(message=fetched_valid_order)
         else:
             print(f"""
                 - All valid orders were fetched, thus getting 'fetched_valid_order' as 'None'.
-                - Now exiting valid_order_consumer and flushing order amounts to 'Orders_with_amount_topic'.
+                - Now exiting valid_order_consumer and flushing order with amounts to 'Orders_with_amount_topic'.
                 """)
-            consuming_customers = False
-
-
-    lo_records.append(valid_order)
-
+            consuming_valid_orders = False
     producer.flush()
     return lo_records
