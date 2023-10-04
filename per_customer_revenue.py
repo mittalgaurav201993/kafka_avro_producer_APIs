@@ -103,6 +103,7 @@ async def revenue_producer():
     for topic_partition in topic_partitions:
         consumer.seek(topic_partition)
     consuming = True
+    per_customer_revenue_total = 0
     while consuming:
         fetched_order = consumer.poll(timeout=5.0)
         if fetched_order is not None:
@@ -125,7 +126,7 @@ async def revenue_producer():
         else:
             print(f"""
             - All valid orders were fetched, thus getting 'fetched_order' as 'None'.
-            - Now exiting consumer and flushing valid orders to 'Revenue_per_customer'.
+            - Now exiting consumer and flushing revenue details to 'Revenue_per_customer'.
             """)
             consuming = False
     producer.flush()
