@@ -10,6 +10,8 @@ from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer, AvroDeserializer
 from confluent_kafka.serialization import StringSerializer, StringDeserializer
 
+lo_customers_orders: [dict] = []
+so_customers: set[dict] = set()
 lo_topics: list[str] = []
 load_dotenv(verbose=True)
 app = FastAPI()
@@ -92,42 +94,46 @@ async def revenue_producer():
     print(f"""
     Consumer with group Id '{os.environ['ORDERS_WITH_AMOUNT_CONSUMER_GROUP']}'started and
     consuming from '{os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME']}' topic.""")
+
     lo_records: list[Revenue] = []
     producer = defined_producer()
     orders_with_amount_consumer_group = os.environ['ORDERS_WITH_AMOUNT_CONSUMER_GROUP']
     consumer = defined_consumer(OrderTotalAmount, orders_with_amount_consumer_group)
+
     topic_partitions = [TopicPartition(topic=os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME'], partition=0, offset=0),
                         TopicPartition(topic=os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME'], partition=1, offset=0),
                         TopicPartition(topic=os.environ['ORDERS_WITH_AMOUNT_TOPIC_NAME'], partition=2, offset=0)]
     consumer.assign(topic_partitions)
     for topic_partition in topic_partitions:
         consumer.seek(topic_partition)
+
     consuming = True
-    per_customer_revenue_total = 0
     while consuming:
         fetched_order = consumer.poll(timeout=5.0)
         if fetched_order is not None:
-            -------------------------------------------------------------
-            if fetched_order.value().validity:
-                print(f"Success inside if statement as order validity"
-                      f" is 'True' having order ID: {fetched_order.value().id}")
-                valid_order = Order(id=fetched_order.value().id,
-                                    customer_id=fetched_order.value().customer_id,
-                                    product_id=fetched_order.value().product_id,
-                                    product_qty=fetched_order.value().product_qty,
-                                    created_ms=fetched_order.value().created_ms,
-                                    validity=fetched_order.value().validity)
-                producer.produce(topic=lo_topics[0],
-                                 key=str(valid_order.id),
-                                 value=valid_order,
-                                 on_delivery=ProducerCallback(valid_order))
-                lo_records.append(valid_order)
-                consumer.commit(message=fetched_order)
+            so_customers.add({'id': fetched_order.value().customer_id,
+                              'name': fetched_order.value().customer_name})
+            lo_customers_orders.append({'id': fetched_order.value().customer_id,
+                                        'each_order_amount': fetched_order.value().order_amount})
+            consumer.commit(message=fetched_order)
         else:
             print(f"""
-            - All valid orders were fetched, thus getting 'fetched_order' as 'None'.
-            - Now exiting consumer and flushing revenue details to 'Revenue_per_customer'.
-            """)
+                - All orders with amount were fetched, thus getting 'fetched_order' as 'None'.
+                - Added required order details to set and list, now exiting consumer.
+                """)
             consuming = False
+    for cust in so_customers:
+        per_customer_revenue_total = 0
+        for order in lo_customers_orders:
+            if order['id'] == cust['id']:
+                per_customer_revenue_total += order['each_order_amount']
+        revenue = Revenue(cust_id=cust['id'],
+                          cust_name=cust['name'],
+                          order_amount_total=per_customer_revenue_total)
+        producer.produce(topic=lo_topics[0],
+                         key=str(revenue.cust_id),
+                         value=revenue,
+                         on_delivery=ProducerCallback(revenue))
+        lo_records.append(revenue)
     producer.flush()
     return lo_records
